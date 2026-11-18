@@ -241,36 +241,49 @@ dialog p{line-height:1.5;margin:0 0 12px}
     <li><strong>Challenge:</strong> unscramble as many words as you can in 60 seconds</li>
     <li><strong>Archive:</strong> replay past days. These don’t count toward your streak</li>
   </ul>
-  <p>A word never appears twice. Topics come around again.</p>
+  <p>A word never appears twice.</p>
   <button class="btn primary" id="closeHelp">Got it</button>
 </dialog>
 
 <script>
 (function(){
-  // ---- Word bank: topics rotate daily, words are consumed in order and never reused ----
-  var BANK = {
-    "Cities": ["ISTANBUL","BARCELONA","AMSTERDAM","MARRAKECH","REYKJAVIK","BUDAPEST","COPENHAGEN","EDINBURGH","VANCOUVER","SANTIAGO","MONTEVIDEO","CASABLANCA","STOCKHOLM","HELSINKI","JERUSALEM","ALEXANDRIA","CARTAGENA","VALPARAISO","KATHMANDU","MARSEILLE","LUXEMBOURG","SARAJEVO","BRATISLAVA","WELLINGTON","TIMBUKTU","MELBOURNE","MANCHESTER"],
-    "Animals": ["PORCUPINE","CHIMPANZEE","RHINOCEROS","CROCODILE","WOLVERINE","ARMADILLO","CHAMELEON","MONGOOSE","PLATYPUS","NARWHAL","ORANGUTAN","ANTEATER","BARRACUDA","SALAMANDER","CASSOWARY","PANGOLIN","TARANTULA","STINGRAY","ALBATROSS","MANATEE","KOOKABURRA","WILDEBEEST","GRASSHOPPER","MOCKINGBIRD","PORPOISE","SCORPION","HUMMINGBIRD"],
-    "Food": ["SPAGHETTI","CHOCOLATE","STRAWBERRY","CHEESECAKE","CROISSANT","QUESADILLA","PINEAPPLE","MARSHMALLOW","ARTICHOKE","GUACAMOLE","RASPBERRY","CAULIFLOWER","ZUCCHINI","CINNAMON","PISTACHIO","MINESTRONE","FETTUCCINE","TIRAMISU","BAKLAVA","RATATOUILLE","BRUSCHETTA","PARMESAN","MOZZARELLA","MASCARPONE","GINGERBREAD","PROFITEROLE","BLUEBERRY"],
-    "Science": ["ELECTRON","CHEMISTRY","TELESCOPE","ASTEROID","MAGNETISM","EVOLUTION","ECOSYSTEM","SPECTRUM","GLACIER","HURRICANE","ISOTOPE","CHROMOSOME","SUPERNOVA","CATALYST","ENTROPY","HYDROGEN","BIOSPHERE","SEISMOGRAPH","LIGHTNING","STALACTITE","PARALLAX","METEORITE","ANTIBODY","BACTERIA","CHLOROPHYLL","ATMOSPHERE","TECTONIC"],
-    "Sports": ["ARCHERY","BASEBALL","BADMINTON","GYMNASTICS","WRESTLING","VOLLEYBALL","BASKETBALL","SKATEBOARD","TRIATHLON","LACROSSE","DECATHLON","BIATHLON","PENTATHLON","HANDBALL","MARATHON","KAYAKING","BOBSLEIGH","TAEKWONDO","PARKOUR","JAVELIN","SOFTBALL","WINDSURFING","PICKLEBALL","WATERPOLO","SNOWBOARD","RACQUETBALL","KICKBOXING"],
-    "Music": ["SAXOPHONE","ORCHESTRA","SYMPHONY","TROMBONE","ACCORDION","HARMONICA","XYLOPHONE","KEYBOARD","CLARINET","CRESCENDO","HARPSICHORD","BASSOON","PICCOLO","TAMBOURINE","CASTANETS","CONCERTO","SERENADE","STACCATO","ARPEGGIO","FALSETTO","MANDOLIN","UKULELE","DIDGERIDOO","METRONOME","SYNTHESIZER","BARITONE","OPERETTA"]
+  // ===================== DAILY WORDS =====================
+  // One word per day, in order. Puzzle #1 (Nov 16, 2026) = the first word.
+  // TO ADD WORDS: put new ones at the END of the list. Never reorder or delete words already played.
+  var DAILY = [
+    "ISTANBUL","PORCUPINE",
+    "PARADIGM","ENIGMA","PARADOX","SYNTAX","AXIOM","THEOREM","METAPHOR","ANALOGY",
+    "RHETORIC","ETHICS","DOGMA","NUANCE","CANON","LEXICON","DIALECT","EPITOME",
+    "STOIC","CYNIC","SOPHISM","MAXIM","APHORISM","EPIGRAM","ALLEGORY","PARABLE",
+    "SATIRE","SONNET","ELEGY","EPILOGUE","PROLOGUE","TRILOGY","OXYMORON","SIMILE",
+    "IDIOM","SEMANTIC","GRAMMAR","SCHOLAR","DOCTRINE","TENET","HERESY","SCHISM",
+    "LOGICIAN","SOPHIST","SAVANT","POLYMATH","PEDANT","ERUDITE","LUCID","COGENT",
+    "TERSE","PROLIX","ARCANE","ABSTRACT","CONCEPT","THEORY","PREMISE","DEDUCE",
+    "INDUCE","LEMMA","VECTOR","MATRIX","INTEGER","FRACTAL","QUANTUM","ENTROPY",
+    "PHOTON","NEUTRON","PLASMA","GENOME","SYNAPSE","NEURON","PSYCHE","UTOPIA",
+    "DYSTOPIA","REPUBLIC","MONARCH","SENATE","TREATISE","ODYSSEY","ILIAD","SPHINX",
+    "ORACLE","NEMESIS","HUBRIS","PATHOS","ETHOS","LOGOS","TELOS","ATHENS",
+    "MYTHOS","TRIVIUM","ALCHEMY","ASTRAL","EUREKA","GAMBIT","OPTIMUM","VERDICT",
+    "DILEMMA","SCEPTIC","EMPIRIC"
+  ];
+  // ===== FORCE A WORD ON A SPECIFIC DATE (optional, overrides the list) =====
+  // Format  "YYYY-MM-DD": "WORD",   (one per line, comma at the end)
+  var SCHEDULE = {
+    // "2026-11-25": "PARADIGM",
   };
-  var TOPICS = Object.keys(BANK);
   var LAUNCH = new Date(2026, 10, 16); // puzzle #1
   var MAX_TRIES = 3;
-  window.UNSCR_BANK = BANK; window.UNSCR_DAY = function(){ return dayNumber(); };
+  window.UNSCR_BANK = {daily: DAILY}; window.UNSCR_DAY = function(){ return dayNumber(); };
 
   function dayNumber(){
     var n = new Date(), t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
     return Math.round((t - LAUNCH) / 86400000);
   }
+  function keyOf(d){ var t = new Date(LAUNCH.getFullYear(), LAUNCH.getMonth(), LAUNCH.getDate() + d), m = t.getMonth() + 1, dd = t.getDate(); return t.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd; }
   function puzzleFor(d){
     if(d < 0) d = 0;
-    var topic = TOPICS[d % TOPICS.length], idx = Math.floor(d / TOPICS.length);
-    var list = BANK[topic];
-    if(idx >= list.length) return null; // word bank exhausted: add more words
-    return {topic: topic, word: list[idx]};
+    var w = SCHEDULE[keyOf(d)] || DAILY[d];
+    return w ? {word: String(w).toUpperCase().trim()} : null; // null = out of words: add more
   }
   function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function bad(s, w){
@@ -336,20 +349,6 @@ dialog p{line-height:1.5;margin:0 0 12px}
     return;
   }
 
-  var FACTS = {
-    ISTANBUL:`Straddles two continents, split by the Bosphorus strait.`, BARCELONA:`Gaudí’s unfinished Sagrada Família towers over this city.`, AMSTERDAM:`Its canal ring is a UNESCO World Heritage site.`, MARRAKECH:`Morocco’s “Red City”, known for the Jemaa el-Fnaa square.`, REYKJAVIK:`The world’s northernmost capital of a sovereign state.`, BUDAPEST:`The Danube divides it into two halves, Buda and Pest.`, COPENHAGEN:`Home of the Little Mermaid statue and Tivoli Gardens.`, EDINBURGH:`Scotland’s capital, topped by a castle on an extinct volcano.`, VANCOUVER:`A Canadian Pacific port city ringed by mountains and sea.`, SANTIAGO:`Chile’s capital, with the Andes looming on its skyline.`,
-    PORCUPINE:`Its quills can number around 30,000.`, CHIMPANZEE:`Shares about 98% of its DNA with humans.`, RHINOCEROS:`Its horn is made of keratin, like your fingernails.`, CROCODILE:`Has one of the strongest bite forces ever measured.`, WOLVERINE:`A stocky, fierce member of the weasel family.`, ARMADILLO:`Its name means “little armored one” in Spanish.`, CHAMELEON:`Its eyes can move independently of each other.`, MONGOOSE:`Famous for fighting venomous snakes like cobras.`, PLATYPUS:`An egg-laying mammal with a duck-like bill.`, NARWHAL:`The “unicorn of the sea”, with a long spiral tusk.`,
-    SPAGHETTI:`Its name is the plural of the Italian for “little strings”.`, CHOCOLATE:`Made from the beans of the cacao tree.`, STRAWBERRY:`Its seeds grow on the outside of the fruit.`, CHEESECAKE:`A dessert whose roots go back to ancient Greece.`, CROISSANT:`Buttery, flaky and crescent-shaped, a French bakery staple.`, QUESADILLA:`A folded, cheese-filled Mexican tortilla.`, PINEAPPLE:`Christopher Columbus brought it to Europe from the Caribbean.`, MARSHMALLOW:`A campfire favorite, once made from a plant’s root sap.`, ARTICHOKE:`A thistle flower bud eaten for its tender heart.`, GUACAMOLE:`Its name comes from Aztec words for avocado and sauce.`,
-    ELECTRON:`A negatively charged particle that orbits an atom’s nucleus.`, CHEMISTRY:`The study of matter and how it changes; the periodic table is its cheat sheet.`, TELESCOPE:`Galileo pointed one at Jupiter in 1610 and found its moons.`, ASTEROID:`Rocky bodies mostly found orbiting between Mars and Jupiter.`, MAGNETISM:`Earth’s core generates a field of this force that guides compasses.`, EVOLUTION:`Darwin explained this process in his 1859 book.`, ECOSYSTEM:`A community of living things interacting with their environment.`, SPECTRUM:`Newton used a prism to split sunlight into a rainbow of these.`, GLACIER:`A slow-moving river of ice.`, HURRICANE:`A tropical storm with winds of at least 74 mph.`,
-    ARCHERY:`Aim for the gold at the center of a target with a bow.`, BASEBALL:`Players round four bases; the World Series crowns its champion.`, BADMINTON:`A shuttlecock, not a ball, flies over the net.`, GYMNASTICS:`Balance beam, vault and floor routines are events in this sport.`, WRESTLING:`Pins and takedowns decide matches in this ancient sport.`, VOLLEYBALL:`Teams bump, set and spike over a high net.`, BASKETBALL:`Invented in 1891 by James Naismith, who used peach baskets.`, SKATEBOARD:`Tony Hawk landed the first 900 on one in 1999.`, TRIATHLON:`Swim, bike, then run, back to back.`, LACROSSE:`Players cradle a ball in a netted stick; it began with Native American communities.`,
-    SAXOPHONE:`Adolphe Sax invented this woodwind in the 1840s.`, ORCHESTRA:`A large ensemble of strings, woodwinds, brass and percussion led by a conductor.`, SYMPHONY:`Beethoven wrote nine of these.`, TROMBONE:`A brass instrument played with a sliding tube.`, ACCORDION:`Squeezed and stretched to push air past reeds, with a keyboard on one side.`, HARMONICA:`Also called a mouth organ; you blow and draw air through reeds.`, XYLOPHONE:`Wooden bars struck with mallets.`, KEYBOARD:`Piano-style keys that can mimic many instruments.`, CLARINET:`A single-reed woodwind; Mozart wrote a famous concerto for it.`, CRESCENDO:`An instruction to get gradually louder.`,
-    MONTEVIDEO:`Uruguay's capital, sitting on the wide Rio de la Plata estuary.`, CASABLANCA:`Morocco's largest city, home to the enormous Hassan II Mosque.`, STOCKHOLM:`Sweden's capital, spread across 14 islands.`, HELSINKI:`Finland's capital, a harbor city on the Baltic Sea.`, JERUSALEM:`A city sacred to Judaism, Christianity and Islam.`, ALEXANDRIA:`Its ancient lighthouse, the Pharos, was one of the Seven Wonders.`, CARTAGENA:`A walled Colombian port city on the Caribbean coast.`, VALPARAISO:`A Chilean port city famous for colorful hillside houses.`, KATHMANDU:`Nepal's capital, a gateway to the Himalayas.`, MARSEILLE:`France's oldest city and its biggest Mediterranean port.`, LUXEMBOURG:`A tiny European country whose capital shares its name.`, SARAJEVO:`The capital of Bosnia and Herzegovina, host of the 1984 Winter Olympics.`, BRATISLAVA:`Slovakia's capital, sitting on the Danube beside Austria.`, WELLINGTON:`New Zealand's windy capital on the Cook Strait.`, TIMBUKTU:`A Malian city on the edge of the Sahara, once a center of Islamic learning.`, MELBOURNE:`Australia's second-largest city, famous for trams and laneway cafes.`, MANCHESTER:`An English city that was a hub of the Industrial Revolution.`,
-    ORANGUTAN:`Its name means "person of the forest" in Malay.`, ANTEATER:`Flicks a sticky tongue more than 150 times a minute.`, BARRACUDA:`A fast, silver predator with a mouth full of sharp teeth.`, SALAMANDER:`An amphibian that can regrow lost limbs.`, CASSOWARY:`A large, flightless bird with a bony crest on its head.`, PANGOLIN:`The only mammal covered in true scales.`, TARANTULA:`A big, hairy spider that flicks tiny barbed hairs to defend itself.`, STINGRAY:`A flat fish related to sharks, with a venomous barb on its tail.`, ALBATROSS:`Has the longest wingspan of any living bird.`, MANATEE:`A gentle, slow marine mammal sometimes called a sea cow.`, KOOKABURRA:`Its call sounds like laughter, and it is native to Australia.`, WILDEBEEST:`Over a million of these follow the Serengeti migration each year.`, GRASSHOPPER:`An insect famous for long jumps and chirping legs.`, MOCKINGBIRD:`A songbird known for copying the calls of other birds.`, PORPOISE:`A small, shy cousin of the dolphin with a blunt face.`, SCORPION:`An arachnid with pincers and a stinging tail.`, HUMMINGBIRD:`The only birds that can fly backward.`,
-    RASPBERRY:`A bramble fruit made of tiny clustered drupelets.`, CAULIFLOWER:`A pale cousin of broccoli, now roasted, riced and turned into pizza crust.`, ZUCCHINI:`A summer squash also known as a courgette.`, CINNAMON:`A spice made from the dried inner bark of a tree.`, PISTACHIO:`A green nut whose shell splits open when it ripens.`, MINESTRONE:`A thick Italian vegetable soup.`, FETTUCCINE:`Ribbon pasta whose name means "little ribbons" in Italian.`, TIRAMISU:`An Italian dessert whose name means "pick me up".`, BAKLAVA:`Layers of phyllo, nuts and syrup, loved across the Middle East and Balkans.`, RATATOUILLE:`A Provencal stew of summer vegetables.`, BRUSCHETTA:`Grilled bread rubbed with garlic and topped with tomatoes.`, PARMESAN:`An aged, hard Italian cheese, usually grated.`, MOZZARELLA:`A stretchy cheese traditionally made from buffalo milk, and the classic pizza topper.`, MASCARPONE:`A rich, creamy Italian cheese used in desserts.`, GINGERBREAD:`A spiced treat often baked into little people and houses.`, PROFITEROLE:`A cream-filled puff pastry ball, often topped with chocolate.`, BLUEBERRY:`A tiny dark berry packed with antioxidants and popular in muffins.`,
-    ISOTOPE:`Atoms of the same element with different numbers of neutrons.`, CHROMOSOME:`A coiled strand of DNA; humans have 23 pairs.`, SUPERNOVA:`The brilliant explosion of a dying massive star.`, CATALYST:`A substance that speeds up a reaction without being used up.`, ENTROPY:`A measure of disorder that tends to increase over time.`, HYDROGEN:`The lightest and most abundant element in the universe.`, BIOSPHERE:`The thin layer of Earth where life exists.`, SEISMOGRAPH:`An instrument that records the shaking of the ground.`, LIGHTNING:`A bolt hotter than the surface of the Sun.`, STALACTITE:`Hangs from a cave ceiling, formed by dripping mineral water.`, PARALLAX:`The apparent shift of an object when your viewpoint changes; astronomers use it to measure star distances.`, METEORITE:`A space rock that survives the fall and lands on Earth.`, ANTIBODY:`A protein your immune system makes to tag invaders.`, BACTERIA:`Single-celled microbes found nearly everywhere on Earth.`, CHLOROPHYLL:`The green pigment plants use to capture sunlight.`, ATMOSPHERE:`The blanket of gases surrounding a planet.`, TECTONIC:`Describes the huge plates of Earth's crust that slowly move.`,
-    DECATHLON:`Ten track and field events over two days.`, BIATHLON:`Combines cross-country skiing with rifle shooting.`, PENTATHLON:`A multi-event contest of five different disciplines.`, HANDBALL:`Teams of seven race down a court and throw a ball into a goal.`, MARATHON:`A 26.2-mile race named after a Greek battle site.`, KAYAKING:`Paddling a narrow boat with a double-bladed paddle.`, BOBSLEIGH:`Teams race down an icy track in a steered sled.`, TAEKWONDO:`A Korean martial art famous for high kicks.`, PARKOUR:`Moving through urban obstacles by running, vaulting and climbing.`, JAVELIN:`A spear-like object thrown for distance in track and field.`, SOFTBALL:`A close cousin of baseball, played with a bigger ball and underhand pitching.`, WINDSURFING:`A board with a sail, steered by shifting your weight.`, PICKLEBALL:`A racket sport played with a paddle and a plastic ball full of holes.`, WATERPOLO:`Teams score by throwing a ball into a net while treading water.`, SNOWBOARD:`A single board used to carve down a snowy mountain.`, RACQUETBALL:`Players hit a small rubber ball off four walls of an indoor court.`, KICKBOXING:`Combines punches with kicks.`,
-    HARPSICHORD:`A keyboard instrument whose strings are plucked, not struck.`, BASSOON:`A long, deep double-reed woodwind.`, PICCOLO:`A tiny flute that plays an octave higher.`, TAMBOURINE:`A hand drum with metal jingles around its frame.`, CASTANETS:`Clicking wooden shells used in Spanish flamenco.`, CONCERTO:`A piece where a solo instrument plays with an orchestra.`, SERENADE:`Music traditionally sung to someone outside their window.`, STACCATO:`Played in short, detached notes.`, ARPEGGIO:`The notes of a chord played one after another.`, FALSETTO:`A light, high voice that sits above a singer's normal range.`, MANDOLIN:`A small, pear-shaped instrument with paired strings.`, UKULELE:`A small four-stringed instrument from Hawaii.`, DIDGERIDOO:`A long wooden drone pipe from Aboriginal Australia.`, METRONOME:`A device that ticks to keep a steady tempo.`, SYNTHESIZER:`An electronic keyboard that creates sounds from scratch.`, BARITONE:`A male voice between tenor and bass.`, OPERETTA:`A light opera with spoken dialogue and catchy tunes.`
-  };
   var word = puz.word, n = word.length;
   var tiles = scramble(word, day * 7919 + 13).map(function(ch, i){ return {ch: ch, id: i}; });
   var answer = [], busy = false, flash = null, celebrate = false;
@@ -443,14 +442,12 @@ dialog p{line-height:1.5;margin:0 0 12px}
   function showHint(){
     var t = [];
     if(state.hintPos != null) t.push("Letter " + (state.hintPos + 1) + " is " + word[state.hintPos] + ".");
-    if(state.hintTopic) t.push("Topic: " + puz.topic + ".");
-    if(state.hintFact) t.push("Fact: " + (FACTS[word] || "No fact for this one."));
     $("hintLine").textContent = t.join(" ");
   }
   function useHint(kind){
     if(state.hints) return;
     state.hints = 1;
-    if(kind === "letter") state.hintPos = Math.floor(Math.random() * n); else if(kind === "topic") state.hintTopic = 1; else state.hintFact = 1;
+    state.hintPos = Math.floor(Math.random() * n);
     save("unscr:day:" + day, state);
     showHint(); render();
   }
