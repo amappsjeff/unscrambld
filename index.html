@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unscrambld: one word a day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff8ed;--ink:#172c51;--muted:#6b6f80;--tile:#fff;--tile-edge:#d9cdb6;--tile-ink:#172c51;--slot:#efe5d2;--accent:#14b57f;--on-accent:#04251a;--good:#34d399;--bad:#ff5d6c;--card:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+:root[data-theme="dark"]{--bg:#0b0d12;--ink:#eef0f5;--muted:#8a91a3;--slot:#161a23;--card:#12151c;--accent:#3ddc97;--tile:#232936;--tile-edge:#0d1016;--tile-ink:#f4f6fa}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+header{flex-direction:column;justify-content:center;text-align:center;gap:24px}
+.hbtns{flex-wrap:wrap;justify-content:center}
+#archive{display:flex;flex-direction:column;gap:18px}
+#archive[hidden]{display:none}
+.alist{display:flex;flex-direction:column;gap:8px}
+.arow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:1px solid var(--slot);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;text-align:left}
+.arow:hover{border-color:var(--accent)}
+.arow:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.arow small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:2px}
+.astat{font-size:13px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--slot);white-space:nowrap}
+.astat.won{background:var(--good);color:var(--on-accent)}
+.astat.lost{background:var(--bad);color:#fff}
+h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
+.iconbtn{background:none;border:1px solid var(--slot);color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.iconbtn:hover{background:var(--slot)}
+.hbtns{display:flex;gap:8px}
+#daily{display:flex;flex-direction:column;gap:22px}
+#daily[hidden]{display:none}
+.ptitle{margin:0;font-size:28px;letter-spacing:-.02em}
+.chipgroup{display:flex;flex-direction:column;gap:8px}
+.clabel{font-size:14px;color:var(--muted);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 14px 'Bricolage Grotesque',system-ui,sans-serif;padding:8px 14px;border-radius:999px;border:1px solid var(--slot);background:var(--card);color:var(--ink);cursor:pointer}
+.chip[aria-pressed='true']{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pill{display:inline-block;padding:6px 16px;border-radius:999px;font-weight:800;font-size:18px}
+.topic,.pill{background:var(--accent);color:var(--on-accent);box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+body,.btn,.chip,.tile,.topic,.slot,.iconbtn,.pill{font-family:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif}
+.wm{display:flex;align-items:center;gap:2px;font-weight:800;letter-spacing:-.03em}
+.lg{display:inline-grid;place-items:center;width:1.2em;height:1.2em;margin-right:3px;border-radius:8px;background:var(--accent);color:var(--on-accent);transform:rotate(-7deg);box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+#helpBtn{background:#f5c518;border-color:#f5c518;color:#2a2200;font-weight:600}
+#helpBtn:hover{background:#ffd43b}
+#archBtn{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+#archBtn:hover{background:var(--ink);filter:brightness(1.25)}
+.topic{display:inline-block;cursor:default;font-size:clamp(15px,4vw,18px);padding:5px 14px;box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+.topic:active{transform:none;box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+.logo{display:flex;align-items:center;gap:2px;background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;color:inherit;cursor:pointer}
+.logo:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:8px}
+#chBtn{background:#ff7a59;border-color:#ff7a59;color:#2a0e06;font-weight:600}
+#chBtn:hover{filter:brightness(1.08)}
+#challenge{display:flex;flex-direction:column;gap:18px}
+#challenge[hidden]{display:none}
+#cPlay{display:flex;flex-direction:column;gap:18px}
+#cPlay[hidden],.cpanel[hidden]{display:none}
+.cpanel{background:var(--card);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center;border:1px solid var(--slot)}
+.cinput{font:inherit;font-size:16px;padding:10px 14px;border-radius:12px;border:1px solid var(--slot);background:var(--bg);color:var(--ink);text-align:center}
+.cinput:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cbar{height:10px;border-radius:999px;background:var(--slot);overflow:hidden}
+#cFill{height:100%;width:100%;background:var(--accent);transition:width .1s linear}
+#cFill.low{background:var(--bad)}
+.cstats{display:flex;justify-content:center;gap:48px;text-align:center}
+.cstats b{display:block;font-size:34px;line-height:1.1}
+.cstats span{font-size:12px;color:var(--muted)}
+.lrow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;border:1px solid var(--slot);background:var(--card);font-weight:600}
+.lrow.me{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.lrank{width:28px;color:var(--muted);font-weight:800}
+.lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lscore{font-weight:800}
+#cTopic{font-size:15px;padding:5px 14px}
+dialog ul{margin:0 0 12px;padding-left:20px;line-height:1.5}
+dialog li{margin-bottom:4px}
+.nohelp{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin:0 0 14px;cursor:pointer}
+.coach{display:flex;align-items:center;justify-content:center;gap:10px}
+.mascot{width:60px;height:60px;flex:none;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.mascot{animation:none}}
+.coach .msg{min-height:0;min-width:40px;text-align:left;background:var(--card);border:1px solid var(--slot);border-radius:14px 14px 14px 4px;padding:10px 14px;max-width:300px;font-size:14px}
+.coach .msg:empty{visibility:hidden}
+.hintline{background:var(--card);border:1px solid var(--slot);border-radius:12px;padding:10px 14px;text-align:center;font-size:14px;color:var(--muted)}
+.hintline:empty{display:none}
+.hintline::before{content:'💡 '}
+.hintbox{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hintbox[hidden]{display:none}
+.meta{text-align:center}
+.topic{font:800 clamp(24px,6vw,32px)/1.1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em;margin:0;padding:10px 24px;border-radius:999px;border:0;background:var(--tile);color:var(--tile-ink);box-shadow:0 4px 0 var(--tile-edge);cursor:pointer}
+.topic:active{transform:translateY(3px);box-shadow:0 1px 0 var(--tile-edge)}
+.topic:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sub{color:var(--muted);margin:6px 0 0;font-size:15px}
+.slots,.pool{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.slot{width:var(--s);height:var(--s);border-radius:10px;background:var(--slot);display:grid;place-items:center;font-size:calc(var(--s)*.5);font-weight:800;cursor:pointer;border:0;color:var(--ink);padding:0;font-family:inherit}
+.slot.hint{color:var(--muted);opacity:.7}
+.slot.ok{background:var(--good);color:var(--on-accent)}
+.slot.no{background:var(--bad);color:#fff}
+.tile{width:var(--s);height:var(--s);border-radius:10px;background:var(--tile);color:var(--tile-ink);font:800 calc(var(--s)*.5) "Bricolage Grotesque",system-ui,sans-serif;border:0;box-shadow:0 5px 0 var(--tile-edge);cursor:pointer;transition:transform .08s,box-shadow .08s;padding:0}
+.tile:active{transform:translateY(4px);box-shadow:0 1px 0 var(--tile-edge)}
+.tile.used{visibility:hidden}
+.tile:focus-visible,.slot:focus-visible,.btn:focus-visible,.iconbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-10px)}30%{transform:translateX(9px)}45%{transform:translateX(-7px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.slot.hop{animation:hop .55s ease-out both}
+@keyframes hop{0%{transform:none}35%{transform:translateY(-14px) rotate(-5deg)}65%{transform:translateY(0) rotate(4deg)}85%{transform:translateY(-4px) rotate(-1deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.shake,.slot.hop{animation:none}.tile{transition:none}}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{font:600 16px "Bricolage Grotesque",system-ui,sans-serif;border-radius:12px;padding:12px 20px;border:1px solid var(--slot);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.lives{display:flex;gap:6px;justify-content:center;align-items:center;color:var(--muted);font-size:14px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.dot.gone{background:var(--slot)}
+.msg{min-height:24px;text-align:center;font-weight:600}
+.result{background:var(--card);border-radius:16px;padding:20px;text-align:center;display:none;flex-direction:column;gap:12px}
+.result.show{display:flex}
+.result h2{margin:0;font-size:24px;letter-spacing:-.02em}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats b{display:block;font-size:26px}
+.stats span{font-size:12px;color:var(--muted)}
+.count{color:var(--muted);font-size:14px}
+dialog{border:0;border-radius:16px;background:var(--card);color:var(--ink);max-width:420px;padding:24px;font-family:inherit}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog p{line-height:1.5;margin:0 0 12px}
+</style>
+</head>
+<body>
+<svg width='0' height='0' style='position:absolute' aria-hidden='true'><symbol id='lex' viewBox='0 0 64 64'><rect x='22' y='3' width='5' height='15' rx='2.5' fill='#f5c518' transform='rotate(-14 24 11)'/><rect x='9' y='12' width='46' height='42' rx='14' fill='var(--accent)'/><circle cx='25' cy='31' r='7' fill='#fff'/><circle cx='40' cy='31' r='7' fill='#fff'/><circle cx='26.5' cy='32' r='3.2' fill='#12141a'/><circle cx='41.5' cy='32' r='3.2' fill='#12141a'/><path d='M27 43q5.5 6 11 0' stroke='#12141a' stroke-width='2.6' fill='none' stroke-linecap='round'/><rect x='19' y='53' width='8' height='7' rx='3.5' fill='var(--accent)'/><rect x='37' y='53' width='8' height='7' rx='3.5' fill='var(--accent)'/></symbol></svg>
+<main>
+  <header>
+    <h1 class='wm'><button id='logo' class='logo' type='button' aria-label='Unscrambld, go to the daily puzzle'><span class='lg'>U</span>nscrambld</button></h1>
+    <div class='hbtns'>
+      <button class='iconbtn' id='chBtn' type='button'>Challenge</button>
+      <button class='iconbtn' id='archBtn' type='button'>Archive</button>
+      <button class='iconbtn' id='helpBtn' aria-label='How to play'>How to play</button>
+    </div>
+  </header>
+
+  <div id='daily'>
+  <section class="meta">
+    <div class="topic" id="topic">one word a day</div>
+    <p class="sub" id="sub"></p>
+    <button class="btn" id="arcBack" type="button" hidden style="margin-top:10px">← Back to archive</button>
+  </section>
+
+  <div class="slots" id="slots" aria-label="Your answer"></div>
+  <div class="pool" id="pool" aria-label="Letters"></div>
+  <div class='hintline' id='hintLine'></div>
+  <div class='coach'>
+    <svg class='mascot' viewBox='0 0 64 64' role='img' aria-label='Lex, the Unscrambld mascot'><use href='#lex' width='64' height='64'/></svg>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </div>
+  <div class="lives" id="lives"></div>
+
+  <div class="row" id="controls">
+    <button class="btn" id="shuffle">Shuffle</button>
+    <button class="btn" id="clear">Clear</button>
+    <button class="btn" id="hint">Hint</button>
+    <button class="btn primary" id="submit">Check</button>
+  </div>
+
+  <section class="result" id="result" aria-live="polite">
+    <h2 id="rTitle"></h2>
+    <p id="rBody" style="margin:0"></p>
+    <div class="stats" id="stats"></div>
+    <button class="btn primary" id="share">Share result</button>
+    <div class="count" id="count"></div>
+  </section>
+  </div>
+
+  <section id='archive' hidden>
+    <div class='meta'>
+      <h2 class='ptitle'>Archive</h2>
+      <p class='sub'>Replay any past puzzle. Archive games don’t count toward your streak.</p>
+    </div>
+    <div class='alist' id='aList'></div>
+  </section>
+
+  <section id='challenge' hidden>
+    <div class='meta'>
+      <h2 class='ptitle'>Challenge</h2>
+      <p class='sub'>Unscramble as many words as you can in 60 seconds.</p>
+    </div>
+
+    <div id='cStart' class='cpanel'>
+      <label class='clabel' for='cNick'>Name on the leaderboard</label>
+      <input id='cNick' class='cinput' maxlength='14' autocomplete='off' placeholder='Your name'>
+      <button class='btn primary' id='cGo' type='button'>Start 60-second run</button>
+    </div>
+
+    <div id='cPlay' hidden>
+      <div class='cbar'><div id='cFill'></div></div>
+      <div class='cstats'>
+        <div><b id='cTime'>60</b><span>seconds</span></div>
+        <div><b id='cScore'>0</b><span>words</span></div>
+      </div>
+      <div class='meta'><span class='pill' id='cTopic'></span></div>
+      <div class='slots' id='cSlots' aria-label='Your answer'></div>
+      <div class='pool' id='cPool' aria-label='Letters'></div>
+      <div class='msg' id='cMsg' role='status' aria-live='polite'></div>
+      <div class='row'>
+        <button class='btn' id='cClear' type='button'>Clear</button>
+        <button class='btn' id='cSkip' type='button'>Skip</button>
+      </div>
+    </div>
+
+    <div id='cDone' class='cpanel' hidden>
+      <h2 class='ptitle' id='cDoneTitle'></h2>
+      <p id='cDoneBody' style='margin:0;color:var(--muted)'></p>
+      <div class='row'>
+        <button class='btn primary' id='cAgain' type='button'>Play again</button>
+        <button class='btn' id='cShare' type='button'>Share score</button>
+      </div>
+    </div>
+
+    <div class='chipgroup'>
+      <span class='clabel'>Leaderboard</span>
+      <div class='chips' id='lbTabs'></div>
+    </div>
+    <div class='alist' id='lbList'></div>
+    <p class='sub' id='lbNote' style='text-align:center'></p>
+  </section>
+
+</main>
+
+<dialog id="help">
+  <h2 style="margin:0 0 6px;font-size:24px;letter-spacing:-.02em">How to play</h2>
+  <p><strong>One scrambled word a day.</strong> Put the letters back in order.</p>
+  <ul>
+    <li>Tap letters or type on your keyboard to build the word</li>
+    <li>You get 3 checks. If you’re close, you’ll see “Almost there!”</li>
+    <li>You get one hint: a random letter. It shows in your share result</li>
+  </ul>
+  <p><strong>More ways to play</strong></p>
+  <ul>
+    <li><strong>Challenge:</strong> unscramble as many words as you can in 60 seconds</li>
+    <li><strong>Archive:</strong> replay past days. These don’t count toward your streak</li>
+  </ul>
+  <p>A word never appears twice. Topics come around again.</p>
+  <button class="btn primary" id="closeHelp">Got it</button>
+</dialog>
+
+<script>
+(function(){
+  // ---- Word bank: topics rotate daily, words are consumed in order and never reused ----
+  var BANK = {
+    "Cities": ["ISTANBUL","BARCELONA","AMSTERDAM","MARRAKECH","REYKJAVIK","BUDAPEST","COPENHAGEN","EDINBURGH","VANCOUVER","SANTIAGO","MONTEVIDEO","CASABLANCA","STOCKHOLM","HELSINKI","JERUSALEM","ALEXANDRIA","CARTAGENA","VALPARAISO","KATHMANDU","MARSEILLE","LUXEMBOURG","SARAJEVO","BRATISLAVA","WELLINGTON","TIMBUKTU","MELBOURNE","MANCHESTER"],
+    "Animals": ["PORCUPINE","CHIMPANZEE","RHINOCEROS","CROCODILE","WOLVERINE","ARMADILLO","CHAMELEON","MONGOOSE","PLATYPUS","NARWHAL","ORANGUTAN","ANTEATER","BARRACUDA","SALAMANDER","CASSOWARY","PANGOLIN","TARANTULA","STINGRAY","ALBATROSS","MANATEE","KOOKABURRA","WILDEBEEST","GRASSHOPPER","MOCKINGBIRD","PORPOISE","SCORPION","HUMMINGBIRD"],
+    "Food": ["SPAGHETTI","CHOCOLATE","STRAWBERRY","CHEESECAKE","CROISSANT","QUESADILLA","PINEAPPLE","MARSHMALLOW","ARTICHOKE","GUACAMOLE","RASPBERRY","CAULIFLOWER","ZUCCHINI","CINNAMON","PISTACHIO","MINESTRONE","FETTUCCINE","TIRAMISU","BAKLAVA","RATATOUILLE","BRUSCHETTA","PARMESAN","MOZZARELLA","MASCARPONE","GINGERBREAD","PROFITEROLE","BLUEBERRY"],
+    "Science": ["ELECTRON","CHEMISTRY","TELESCOPE","ASTEROID","MAGNETISM","EVOLUTION","ECOSYSTEM","SPECTRUM","GLACIER","HURRICANE","ISOTOPE","CHROMOSOME","SUPERNOVA","CATALYST","ENTROPY","HYDROGEN","BIOSPHERE","SEISMOGRAPH","LIGHTNING","STALACTITE","PARALLAX","METEORITE","ANTIBODY","BACTERIA","CHLOROPHYLL","ATMOSPHERE","TECTONIC"],
+    "Sports": ["ARCHERY","BASEBALL","BADMINTON","GYMNASTICS","WRESTLING","VOLLEYBALL","BASKETBALL","SKATEBOARD","TRIATHLON","LACROSSE","DECATHLON","BIATHLON","PENTATHLON","HANDBALL","MARATHON","KAYAKING","BOBSLEIGH","TAEKWONDO","PARKOUR","JAVELIN","SOFTBALL","WINDSURFING","PICKLEBALL","WATERPOLO","SNOWBOARD","RACQUETBALL","KICKBOXING"],
+    "Music": ["SAXOPHONE","ORCHESTRA","SYMPHONY","TROMBONE","ACCORDION","HARMONICA","XYLOPHONE","KEYBOARD","CLARINET","CRESCENDO","HARPSICHORD","BASSOON","PICCOLO","TAMBOURINE","CASTANETS","CONCERTO","SERENADE","STACCATO","ARPEGGIO","FALSETTO","MANDOLIN","UKULELE","DIDGERIDOO","METRONOME","SYNTHESIZER","BARITONE","OPERETTA"]
+  };
+  var TOPICS = Object.keys(BANK);
+  var LAUNCH = new Date(2026, 10, 16); // puzzle #1
+  var MAX_TRIES = 3;
+  window.UNSCR_BANK = BANK; window.UNSCR_DAY = function(){ return dayNumber(); };
+
+  function dayNumber(){
+    var n = new Date(), t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    return Math.round((t - LAUNCH) / 86400000);
+  }
+  function puzzleFor(d){
+    if(d < 0) d = 0;
+    var topic = TOPICS[d % TOPICS.length], idx = Math.floor(d / TOPICS.length);
+    var list = BANK[topic];
+    if(idx >= list.length) return null; // word bank exhausted: add more words
+    return {topic: topic, word: list[idx]};
+  }
+  function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function bad(s, w){
+    var f = 0, p = 0, i, k;
+    for(i = 0; i < w.length; i++) if(s[i] === w[i]) f++;
+    for(k = 0; k < w.length - 1; k++) if(s.indexOf(w.substr(k, 2)) > -1) p++;
+    return (f > 1 ? f * 3 : 0) + p;
+  }
+  function scramble(word, seed){
+    var r = rng(seed), a, out, tries = 0, best = null, bestScore = 1e9, sc, i, j, t;
+    do {
+      a = word.split("");
+      for(i = a.length - 1; i > 0; i--){ j = Math.floor(r() * (i + 1)); t = a[i]; a[i] = a[j]; a[j] = t; }
+      out = a.join(""); tries++;
+      sc = out === word ? 1e8 : bad(out, word);
+      if(sc < bestScore){ best = a.slice(); bestScore = sc; }
+    } while(bestScore > 0 && tries < 400);
+    return best;
+  }
+
+  // ---- storage (guarded) ----
+  function load(k, d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+  function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+  var today = dayNumber(), day = today, hm = /^#day=(\d+)$/.exec(location.hash);
+  if(hm && +hm[1] < today) day = +hm[1];
+  var archived = day !== today, puz = puzzleFor(day);
+  var $ = function(id){ return document.getElementById(id); };
+
+  function dateOf(d){ return new Date(LAUNCH.getFullYear(), LAUNCH.getMonth(), LAUNCH.getDate() + d); }
+  function fmt(d){ return dateOf(d).toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric"}); }
+  function buildArchive(){
+    var el = $("aList"); el.innerHTML = "";
+    if(today < 1){ el.innerHTML = "<p class='sub' style='text-align:center'>No past puzzles yet. Come back tomorrow!</p>"; return; }
+    for(var d = today - 1; d >= 0; d--){
+      var p = puzzleFor(d); if(!p) continue;
+      var st = load("unscr:day:" + d, {status: "playing"}).status;
+      var b = document.createElement("button"); b.type = "button"; b.className = "arow";
+      b.innerHTML = "<span>" + fmt(d) + "</span><span class='astat " + (st === "won" ? "won" : st === "lost" ? "lost" : "") + "'>" + (st === "won" ? "Solved" : st === "lost" ? "Missed" : "Play") + "</span>";
+      b.onclick = (function(k){ return function(){ location.hash = "day=" + k; location.reload(); }; })(d);
+      el.appendChild(b);
+    }
+  }
+  function showArchive(open){
+    $("archive").hidden = !open;
+    if(open){ buildArchive(); $("challenge").hidden = true; $("chBtn").textContent = "Challenge"; $("daily").hidden = true; $("archBtn").textContent = "Daily puzzle"; }
+    else { $("daily").hidden = false; $("archBtn").textContent = "Archive"; }
+  }
+  $("archBtn").onclick = function(){ showArchive($("archive").hidden); };
+  $("arcBack").onclick = function(){ location.hash = "archive"; location.reload(); };
+  if(location.hash === "#archive") showArchive(true);
+  $("logo").onclick = function(){
+    if(archived){ location.hash = ""; location.reload(); return; }
+    $("archive").hidden = true; $("daily").hidden = false;
+    $("archBtn").textContent = "Archive";
+    window.scrollTo(0, 0);
+  };
+
+  if(!puz){
+    $("topic").textContent = "You’ve played every word";
+    $("sub").textContent = "New words are on the way. Check back soon.";
+    ["slots","pool","lives","controls"].forEach(function(i){ $(i).style.display = "none"; });
+    return;
+  }
+
+  var FACTS = {
+    ISTANBUL:`Straddles two continents, split by the Bosphorus strait.`, BARCELONA:`Gaudí’s unfinished Sagrada Família towers over this city.`, AMSTERDAM:`Its canal ring is a UNESCO World Heritage site.`, MARRAKECH:`Morocco’s “Red City”, known for the Jemaa el-Fnaa square.`, REYKJAVIK:`The world’s northernmost capital of a sovereign state.`, BUDAPEST:`The Danube divides it into two halves, Buda and Pest.`, COPENHAGEN:`Home of the Little Mermaid statue and Tivoli Gardens.`, EDINBURGH:`Scotland’s capital, topped by a castle on an extinct volcano.`, VANCOUVER:`A Canadian Pacific port city ringed by mountains and sea.`, SANTIAGO:`Chile’s capital, with the Andes looming on its skyline.`,
+    PORCUPINE:`Its quills can number around 30,000.`, CHIMPANZEE:`Shares about 98% of its DNA with humans.`, RHINOCEROS:`Its horn is made of keratin, like your fingernails.`, CROCODILE:`Has one of the strongest bite forces ever measured.`, WOLVERINE:`A stocky, fierce member of the weasel family.`, ARMADILLO:`Its name means “little armored one” in Spanish.`, CHAMELEON:`Its eyes can move independently of each other.`, MONGOOSE:`Famous for fighting venomous snakes like cobras.`, PLATYPUS:`An egg-laying mammal with a duck-like bill.`, NARWHAL:`The “unicorn of the sea”, with a long spiral tusk.`,
+    SPAGHETTI:`Its name is the plural of the Italian for “little strings”.`, CHOCOLATE:`Made from the beans of the cacao tree.`, STRAWBERRY:`Its seeds grow on the outside of the fruit.`, CHEESECAKE:`A dessert whose roots go back to ancient Greece.`, CROISSANT:`Buttery, flaky and crescent-shaped, a French bakery staple.`, QUESADILLA:`A folded, cheese-filled Mexican tortilla.`, PINEAPPLE:`Christopher Columbus brought it to Europe from the Caribbean.`, MARSHMALLOW:`A campfire favorite, once made from a plant’s root sap.`, ARTICHOKE:`A thistle flower bud eaten for its tender heart.`, GUACAMOLE:`Its name comes from Aztec words for avocado and sauce.`,
+    ELECTRON:`A negatively charged particle that orbits an atom’s nucleus.`, CHEMISTRY:`The study of matter and how it changes; the periodic table is its cheat sheet.`, TELESCOPE:`Galileo pointed one at Jupiter in 1610 and found its moons.`, ASTEROID:`Rocky bodies mostly found orbiting between Mars and Jupiter.`, MAGNETISM:`Earth’s core generates a field of this force that guides compasses.`, EVOLUTION:`Darwin explained this process in his 1859 book.`, ECOSYSTEM:`A community of living things interacting with their environment.`, SPECTRUM:`Newton used a prism to split sunlight into a rainbow of these.`, GLACIER:`A slow-moving river of ice.`, HURRICANE:`A tropical storm with winds of at least 74 mph.`,
+    ARCHERY:`Aim for the gold at the center of a target with a bow.`, BASEBALL:`Players round four bases; the World Series crowns its champion.`, BADMINTON:`A shuttlecock, not a ball, flies over the net.`, GYMNASTICS:`Balance beam, vault and floor routines are events in this sport.`, WRESTLING:`Pins and takedowns decide matches in this ancient sport.`, VOLLEYBALL:`Teams bump, set and spike over a high net.`, BASKETBALL:`Invented in 1891 by James Naismith, who used peach baskets.`, SKATEBOARD:`Tony Hawk landed the first 900 on one in 1999.`, TRIATHLON:`Swim, bike, then run, back to back.`, LACROSSE:`Players cradle a ball in a netted stick; it began with Native American communities.`,
+    SAXOPHONE:`Adolphe Sax invented this woodwind in the 1840s.`, ORCHESTRA:`A large ensemble of strings, woodwinds, brass and percussion led by a conductor.`, SYMPHONY:`Beethoven wrote nine of these.`, TROMBONE:`A brass instrument played with a sliding tube.`, ACCORDION:`Squeezed and stretched to push air past reeds, with a keyboard on one side.`, HARMONICA:`Also called a mouth organ; you blow and draw air through reeds.`, XYLOPHONE:`Wooden bars struck with mallets.`, KEYBOARD:`Piano-style keys that can mimic many instruments.`, CLARINET:`A single-reed woodwind; Mozart wrote a famous concerto for it.`, CRESCENDO:`An instruction to get gradually louder.`,
+    MONTEVIDEO:`Uruguay's capital, sitting on the wide Rio de la Plata estuary.`, CASABLANCA:`Morocco's largest city, home to the enormous Hassan II Mosque.`, STOCKHOLM:`Sweden's capital, spread across 14 islands.`, HELSINKI:`Finland's capital, a harbor city on the Baltic Sea.`, JERUSALEM:`A city sacred to Judaism, Christianity and Islam.`, ALEXANDRIA:`Its ancient lighthouse, the Pharos, was one of the Seven Wonders.`, CARTAGENA:`A walled Colombian port city on the Caribbean coast.`, VALPARAISO:`A Chilean port city famous for colorful hillside houses.`, KATHMANDU:`Nepal's capital, a gateway to the Himalayas.`, MARSEILLE:`France's oldest city and its biggest Mediterranean port.`, LUXEMBOURG:`A tiny European country whose capital shares its name.`, SARAJEVO:`The capital of Bosnia and Herzegovina, host of the 1984 Winter Olympics.`, BRATISLAVA:`Slovakia's capital, sitting on the Danube beside Austria.`, WELLINGTON:`New Zealand's windy capital on the Cook Strait.`, TIMBUKTU:`A Malian city on the edge of the Sahara, once a center of Islamic learning.`, MELBOURNE:`Australia's second-largest city, famous for trams and laneway cafes.`, MANCHESTER:`An English city that was a hub of the Industrial Revolution.`,
+    ORANGUTAN:`Its name means "person of the forest" in Malay.`, ANTEATER:`Flicks a sticky tongue more than 150 times a minute.`, BARRACUDA:`A fast, silver predator with a mouth full of sharp teeth.`, SALAMANDER:`An amphibian that can regrow lost limbs.`, CASSOWARY:`A large, flightless bird with a bony crest on its head.`, PANGOLIN:`The only mammal covered in true scales.`, TARANTULA:`A big, hairy spider that flicks tiny barbed hairs to defend itself.`, STINGRAY:`A flat fish related to sharks, with a venomous barb on its tail.`, ALBATROSS:`Has the longest wingspan of any living bird.`, MANATEE:`A gentle, slow marine mammal sometimes called a sea cow.`, KOOKABURRA:`Its call sounds like laughter, and it is native to Australia.`, WILDEBEEST:`Over a million of these follow the Serengeti migration each year.`, GRASSHOPPER:`An insect famous for long jumps and chirping legs.`, MOCKINGBIRD:`A songbird known for copying the calls of other birds.`, PORPOISE:`A small, shy cousin of the dolphin with a blunt face.`, SCORPION:`An arachnid with pincers and a stinging tail.`, HUMMINGBIRD:`The only birds that can fly backward.`,
+    RASPBERRY:`A bramble fruit made of tiny clustered drupelets.`, CAULIFLOWER:`A pale cousin of broccoli, now roasted, riced and turned into pizza crust.`, ZUCCHINI:`A summer squash also known as a courgette.`, CINNAMON:`A spice made from the dried inner bark of a tree.`, PISTACHIO:`A green nut whose shell splits open when it ripens.`, MINESTRONE:`A thick Italian vegetable soup.`, FETTUCCINE:`Ribbon pasta whose name means "little ribbons" in Italian.`, TIRAMISU:`An Italian dessert whose name means "pick me up".`, BAKLAVA:`Layers of phyllo, nuts and syrup, loved across the Middle East and Balkans.`, RATATOUILLE:`A Provencal stew of summer vegetables.`, BRUSCHETTA:`Grilled bread rubbed with garlic and topped with tomatoes.`, PARMESAN:`An aged, hard Italian cheese, usually grated.`, MOZZARELLA:`A stretchy cheese traditionally made from buffalo milk, and the classic pizza topper.`, MASCARPONE:`A rich, creamy Italian cheese used in desserts.`, GINGERBREAD:`A spiced treat often baked into little people and houses.`, PROFITEROLE:`A cream-filled puff pastry ball, often topped with chocolate.`, BLUEBERRY:`A tiny dark berry packed with antioxidants and popular in muffins.`,
+    ISOTOPE:`Atoms of the same element with different numbers of neutrons.`, CHROMOSOME:`A coiled strand of DNA; humans have 23 pairs.`, SUPERNOVA:`The brilliant explosion of a dying massive star.`, CATALYST:`A substance that speeds up a reaction without being used up.`, ENTROPY:`A measure of disorder that tends to increase over time.`, HYDROGEN:`The lightest and most abundant element in the universe.`, BIOSPHERE:`The thin layer of Earth where life exists.`, SEISMOGRAPH:`An instrument that records the shaking of the ground.`, LIGHTNING:`A bolt hotter than the surface of the Sun.`, STALACTITE:`Hangs from a cave ceiling, formed by dripping mineral water.`, PARALLAX:`The apparent shift of an object when your viewpoint changes; astronomers use it to measure star distances.`, METEORITE:`A space rock that survives the fall and lands on Earth.`, ANTIBODY:`A protein your immune system makes to tag invaders.`, BACTERIA:`Single-celled microbes found nearly everywhere on Earth.`, CHLOROPHYLL:`The green pigment plants use to capture sunlight.`, ATMOSPHERE:`The blanket of gases surrounding a planet.`, TECTONIC:`Describes the huge plates of Earth's crust that slowly move.`,
+    DECATHLON:`Ten track and field events over two days.`, BIATHLON:`Combines cross-country skiing with rifle shooting.`, PENTATHLON:`A multi-event contest of five different disciplines.`, HANDBALL:`Teams of seven race down a court and throw a ball into a goal.`, MARATHON:`A 26.2-mile race named after a Greek battle site.`, KAYAKING:`Paddling a narrow boat with a double-bladed paddle.`, BOBSLEIGH:`Teams race down an icy track in a steered sled.`, TAEKWONDO:`A Korean martial art famous for high kicks.`, PARKOUR:`Moving through urban obstacles by running, vaulting and climbing.`, JAVELIN:`A spear-like object thrown for distance in track and field.`, SOFTBALL:`A close cousin of baseball, played with a bigger ball and underhand pitching.`, WINDSURFING:`A board with a sail, steered by shifting your weight.`, PICKLEBALL:`A racket sport played with a paddle and a plastic ball full of holes.`, WATERPOLO:`Teams score by throwing a ball into a net while treading water.`, SNOWBOARD:`A single board used to carve down a snowy mountain.`, RACQUETBALL:`Players hit a small rubber ball off four walls of an indoor court.`, KICKBOXING:`Combines punches with kicks.`,
+    HARPSICHORD:`A keyboard instrument whose strings are plucked, not struck.`, BASSOON:`A long, deep double-reed woodwind.`, PICCOLO:`A tiny flute that plays an octave higher.`, TAMBOURINE:`A hand drum with metal jingles around its frame.`, CASTANETS:`Clicking wooden shells used in Spanish flamenco.`, CONCERTO:`A piece where a solo instrument plays with an orchestra.`, SERENADE:`Music traditionally sung to someone outside their window.`, STACCATO:`Played in short, detached notes.`, ARPEGGIO:`The notes of a chord played one after another.`, FALSETTO:`A light, high voice that sits above a singer's normal range.`, MANDOLIN:`A small, pear-shaped instrument with paired strings.`, UKULELE:`A small four-stringed instrument from Hawaii.`, DIDGERIDOO:`A long wooden drone pipe from Aboriginal Australia.`, METRONOME:`A device that ticks to keep a steady tempo.`, SYNTHESIZER:`An electronic keyboard that creates sounds from scratch.`, BARITONE:`A male voice between tenor and bass.`, OPERETTA:`A light opera with spoken dialogue and catchy tunes.`
+  };
+  var word = puz.word, n = word.length;
+  var tiles = scramble(word, day * 7919 + 13).map(function(ch, i){ return {ch: ch, id: i}; });
+  var answer = [], busy = false, flash = null, celebrate = false;
+  var state = load("unscr:day:" + day, {status: "playing", tries: 0, hints: 0, log: []});
+  var stats = load("unscr:stats", {played: 0, wins: 0, streak: 0, best: 0, last: -1});
+  var size = Math.max(36, Math.min(56, Math.floor((Math.min(window.innerWidth, 560) - 32 - (n - 1) * 8) / n)));
+  document.documentElement.style.setProperty("--s", size + "px");
+
+  $("topic").textContent = "one word a day";
+  $("sub").textContent = archived ? fmt(day) + " · Puzzle #" + (day + 1) + " · " + n + " letters" : "Puzzle #" + (day + 1) + " · " + n + " letters";
+  if(archived) $("arcBack").hidden = false;
+
+  function render(){
+    var over = state.status !== "playing";
+    var s = $("slots"); s.innerHTML = "";
+    for(var i = 0; i < n; i++){
+      var b = document.createElement("button");
+      b.className = "slot"; b.type = "button";
+      var t = tiles.filter(function(x){ return x.id === answer[i]; })[0];
+      if(over){ b.textContent = word[i]; b.className += state.status === "won" ? " ok" : " no"; b.disabled = true; if(celebrate && state.status === "won"){ b.className += " hop"; b.style.animationDelay = (i * 60) + "ms"; } }
+      else if(t){ b.textContent = t.ch; b.setAttribute("aria-label", "Remove " + t.ch); b.onclick = (function(k){ return function(){ answer.splice(k, 1); render(); }; })(i); if(flash === "bad") b.className += " no"; }
+      else if(state.hintPos === i){ b.textContent = word[i]; b.className += " hint"; }
+      b.setAttribute("tabindex", over ? "-1" : "0");
+      s.appendChild(b);
+    }
+    var p = $("pool"); p.innerHTML = "";
+    tiles.forEach(function(t){
+      var b = document.createElement("button");
+      b.className = "tile" + (answer.indexOf(t.id) > -1 || over ? " used" : ""); b.type = "button"; b.textContent = t.ch;
+      b.onclick = function(){ add(t.id); };
+      p.appendChild(b);
+    });
+    var l = $("lives"); l.innerHTML = "<span>Checks left</span>";
+    for(var k = 0; k < MAX_TRIES; k++){ var d = document.createElement("span"); d.className = "dot" + (k < state.tries ? " gone" : ""); l.appendChild(d); }
+    $("controls").style.display = over ? "none" : "flex";
+    $("hint").disabled = state.hints > 0;
+    $("submit").disabled = answer.length !== n;
+    if(over) showResult();
+  }
+  function add(id){ if(state.status !== "playing" || answer.length >= n || answer.indexOf(id) > -1) return; answer.push(id); $("msg").textContent = ""; render(); }
+
+  function off(g){ var c = 0; for(var i = 0; i < n; i++) if(g[i] !== word[i]) c++; return c; }
+  function finish(won){
+    state.status = won ? "won" : "lost";
+    if(archived) return;
+    stats.played++;
+    if(won){ stats.wins++; stats.streak = stats.last === day - 1 ? stats.streak + 1 : 1; stats.best = Math.max(stats.best, stats.streak); stats.last = day; }
+    else stats.streak = 0;
+    save("unscr:stats", stats);
+  }
+  function submit(){
+    if(answer.length !== n || state.status !== "playing" || busy) return;
+    var guess = answer.map(function(id){ return tiles.filter(function(x){ return x.id === id; })[0].ch; }).join("");
+    if(guess === word){ state.log.push("🟩"); celebrate = true; finish(true); $("msg").textContent = ""; }
+    else {
+      state.tries++; state.log.push("🟥");
+      var el = $("slots"); el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+      if(state.tries >= MAX_TRIES){ answer = []; finish(false); }
+      else { busy = true; flash = "bad"; setTimeout(function(){ busy = false; flash = null; answer = []; render(); }, 450); }
+      if(state.tries < MAX_TRIES) $("msg").textContent = (off(guess) <= 2 ? "Almost there! Just two letters are swapped. " : "Not quite. ") + (MAX_TRIES - state.tries) + " check" + (MAX_TRIES - state.tries === 1 ? "" : "s") + " left.";
+    }
+    save("unscr:day:" + day, state);
+    render();
+    celebrate = false;
+  }
+
+  function showResult(){
+    var won = state.status === "won";
+    $("rTitle").textContent = won ? "It’s " + word + "." : "The word was " + word + ".";
+    $("rBody").textContent = won
+      ? "Solved with " + state.tries + " wrong check" + (state.tries === 1 ? "" : "s") + (state.hints ? " and a hint." : ".")
+      : (archived ? "Try another day from the archive." : "Tomorrow is a new word and a new topic.");
+    $("stats").innerHTML = [["Played", stats.played], ["Won %", stats.played ? Math.round(stats.wins / stats.played * 100) : 0], ["Streak", stats.streak], ["Best", stats.best]]
+      .map(function(r){ return "<div><b>" + r[1] + "</b><span>" + r[0] + "</span></div>"; }).join("");
+    $("result").classList.add("show");
+    tick();
+  }
+  function tick(){
+    var now = new Date(), next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1), ms = next - now;
+    var h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    $("count").textContent = archived ? "" : "Next word in " + h + "h " + m + "m";
+  }
+  setInterval(function(){ if(state.status !== "playing") tick(); if(dayNumber() !== today) location.reload(); }, 30000);
+
+  $("shuffle").onclick = function(){
+    var r = Math.random;
+    for(var i = tiles.length - 1; i > 0; i--){ var j = Math.floor(r() * (i + 1)); var t = tiles[i]; tiles[i] = tiles[j]; tiles[j] = t; }
+    render();
+  };
+  $("clear").onclick = function(){ answer = []; render(); };
+  function showHint(){
+    var t = [];
+    if(state.hintPos != null) t.push("Letter " + (state.hintPos + 1) + " is " + word[state.hintPos] + ".");
+    if(state.hintTopic) t.push("Topic: " + puz.topic + ".");
+    if(state.hintFact) t.push("Fact: " + (FACTS[word] || "No fact for this one."));
+    $("hintLine").textContent = t.join(" ");
+  }
+  function useHint(kind){
+    if(state.hints) return;
+    state.hints = 1;
+    if(kind === "letter") state.hintPos = Math.floor(Math.random() * n); else if(kind === "topic") state.hintTopic = 1; else state.hintFact = 1;
+    save("unscr:day:" + day, state);
+    showHint(); render();
+  }
+  $("hint").onclick = function(){ useHint("letter"); };
+  showHint();
+  $("submit").onclick = submit;
+  $("share").onclick = function(){
+    var att = state.log.length;
+    var txt = "Unscrambld #" + (day + 1) + "\n" + (state.status === "won" ? "Solved in " : "Missed after ") + att + " attempt" + (att === 1 ? "" : "s") + (state.hints ? " (with a hint😉)" : "") + " " + state.log.join("") + (state.hints ? " 💡" : "") + (archived ? "\n📚 Archive game" : "\n🔥 Current streak: " + stats.streak);
+    var done = function(){ $("share").textContent = "Copied"; setTimeout(function(){ $("share").textContent = "Share result"; }, 1800); };
+    try { navigator.clipboard.writeText(txt).then(done, function(){ prompt("Copy your result:", txt); }); } catch(e){ prompt("Copy your result:", txt); }
+  };
+  document.addEventListener("keydown", function(e){
+    if(state.status !== "playing" || e.metaKey || e.ctrlKey || e.altKey || $("help").open || $("daily").hidden) return;
+    if(e.key === "Backspace"){ answer.pop(); render(); }
+    else if(e.key === "Enter"){ if(document.activeElement && document.activeElement.tagName === "BUTTON" && document.activeElement.id !== "submit") return; submit(); }
+    else if(/^[a-zA-Z]$/.test(e.key)){
+      var c = e.key.toUpperCase();
+      var t = tiles.filter(function(x){ return x.ch === c && answer.indexOf(x.id) === -1; })[0];
+      if(t) add(t.id);
+    }
+  });
+  $("helpBtn").onclick = function(){ $("help").showModal(); };
+  $("closeHelp").onclick = function(){ $("help").close(); };
+  var shownThisVisit = false;
+  try { shownThisVisit = !!sessionStorage.getItem("unscr:shown"); } catch(e){}
+  if(!shownThisVisit){
+    try { sessionStorage.setItem("unscr:shown", "1"); } catch(e){}
+    $("help").showModal();
+  }
+
+  render();
+})();
+</script>
+<script>
+(function(){
+  var PB = {
+    'Cities': 'PARIS ROME CAIRO LIMA OSLO DELHI MIAMI TOKYO SEOUL DUBAI LONDON BERLIN SYDNEY BOSTON DUBLIN MADRID LISBON VIENNA OXFORD PRAGUE MUMBAI BANGKOK SEATTLE NAIROBI BARCELONA SANTIAGO ISTANBUL AMSTERDAM SINGAPORE MELBOURNE VANCOUVER'.split(' '),
+    'States': 'OHIO IOWA UTAH TEXAS MAINE IDAHO OREGON NEVADA ALASKA HAWAII FLORIDA GEORGIA ARIZONA MONTANA VERMONT WYOMING KENTUCKY ILLINOIS MICHIGAN COLORADO OKLAHOMA VIRGINIA DELAWARE MARYLAND MISSOURI NEBRASKA TENNESSEE LOUISIANA ARKANSAS MINNESOTA WISCONSIN CALIFORNIA'.split(' '),
+    'Movies': 'JAWS ALIEN SHREK COCO BRAVE ROCKY CARS MOANA SPEED BAMBI MATRIX FROZEN TITANIC AVATAR PSYCHO VERTIGO GREASE INCEPTION GLADIATOR CASABLANCA GOODFELLAS BRAVEHEART TERMINATOR RATATOUILLE INTERSTELLAR'.split(' '),
+    'Shows': 'LOST GLEE MONK SUITS FARGO HOUSE ALIAS ELLEN DEXTER SCRUBS CHEERS ARCHER FRASIER FRIENDS SEINFELD SOPRANOS SUCCESSION CHERNOBYL HOMELAND WESTWORLD MANDALORIAN'.split(' '),
+    'Sports': 'GOLF POLO JUDO DARTS RUGBY SURF TENNIS HOCKEY SOCCER BOXING ROWING DIVING SQUASH CRICKET FENCING CURLING SAILING ARCHERY BASEBALL BADMINTON GYMNASTICS WRESTLING VOLLEYBALL BASKETBALL SKATEBOARD SNOWBOARD TRIATHLON LACROSSE'.split(' '),
+    'Animals': 'LION BEAR SEAL GOAT ZEBRA PANDA OTTER SLOTH KOALA MOOSE BADGER WALRUS LEOPARD DOLPHIN PENGUIN GIRAFFE OCTOPUS GORILLA PARROT TURTLE FLAMINGO HEDGEHOG CROCODILE KANGAROO CHIMPANZEE RHINOCEROS PORCUPINE'.split(' '),
+    'Food': 'PIZZA BREAD PASTA TACO SUSHI RICE SALAD CAKE PEACH LEMON PANCAKE AVOCADO NOODLES PRETZEL MUFFIN WAFFLE BURRITO LASAGNA BROCCOLI DUMPLING SPAGHETTI CHOCOLATE STRAWBERRY CHEESECAKE CROISSANT QUESADILLA'.split(' '),
+    'Science': 'ATOM CELL MOON MARS FORCE LIGHT WAVE GRAVITY PROTON GALAXY VOLCANO ECLIPSE PLANET OXYGEN FOSSIL ENERGY NEUTRON MOLECULE ELECTRON CHEMISTRY TELESCOPE ASTEROID MAGNETISM EVOLUTION ECOSYSTEM'.split(' '),
+    'Music': 'PIANO CELLO DRUMS BANJO FLUTE BASS HARP TUBA OBOE GUITAR TRUMPET VIOLIN HARMONY MELODY RHYTHM ORGAN CLARINET SAXOPHONE ORCHESTRA SYMPHONY TROMBONE ACCORDION HARMONICA XYLOPHONE KEYBOARD CRESCENDO'.split(' ')
+  };
+  window.UNSCR_PB = PB;
+})();
+</script>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var DURATION = 60000;
+  function dayN(){ return window.UNSCR_DAY ? window.UNSCR_DAY() : 0; }
+  function load(k, d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+  function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  function shuffle(a){ for(var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+  function bad(s, w){
+    var f = 0, p = 0, i, k;
+    for(i = 0; i < w.length; i++) if(s[i] === w[i]) f++;
+    for(k = 0; k < w.length - 1; k++) if(s.indexOf(w.substr(k, 2)) > -1) p++;
+    return (f > 1 ? f * 3 : 0) + p;
+  }
+  function scr(w){
+    var a, out, n = 0, best = null, bestScore = 1e9, sc;
+    do {
+      a = shuffle(w.split("")); out = a.join(""); n++;
+      sc = out === w ? 1e8 : bad(out, w);
+      if(sc < bestScore){ best = a.slice(); bestScore = sc; }
+    } while(bestScore > 0 && n < 300);
+    return best;
+  }
+  function buildPool(){
+    var banned = {}, seen = {}, out = [], B = window.UNSCR_BANK || {}, P = window.UNSCR_PB || {};
+    Object.keys(B).forEach(function(t){ B[t].forEach(function(w){ banned[w] = 1; }); });
+    Object.keys(P).forEach(function(t){ P[t].forEach(function(w){ if(w.length >= 5 && w.length <= 8 && !banned[w] && !seen[w]){ seen[w] = 1; out.push({w: w, t: t}); } }); });
+    return out;
+  }
+
+  var POOL = null, run = {on: false, lock: false}, timerId = null, tab = "today";
+  var DB = {tried: false, ok: false, loaded: false, rows: [], uid: null, db: null, canWrite: true, note: ""};
+
+  /* ---------- leaderboard ---------- */
+  async function initDb(){
+    if(DB.tried) return; DB.tried = true;
+    try {
+      if(!(window.claude && window.claude.use)) return;
+      var db = await window.claude.use("db"), user = await window.claude.use("user");
+      if(!db || !user) return;
+      var uid = await user.id(); if(!uid) return;
+      var cw = await user.can("data.write");
+      DB.db = db; DB.uid = uid; DB.ok = true; DB.canWrite = cw !== false;
+      if(!DB.canWrite) DB.note = "You can see the leaderboard, but saving scores to it needs Contributor access.";
+      DB.timer = setTimeout(function(){ if(!DB.loaded){ DB.note = "The shared leaderboard can’t be reached yet."; renderBoard(); } }, 10000);
+      db.collection("scores").orderBy("best", "desc").limit(200).onSnapshot(function(snap){
+        DB.loaded = true; clearTimeout(DB.timer);
+        DB.rows = snap.docs.map(function(d){
+          var x = d.data() || {};
+          return {id: d.id, nick: String(x.nick || "Player").slice(0, 14), best: +x.best || 0, todayDay: x.todayDay, todayScore: +x.todayScore || 0};
+        });
+        renderBoard();
+      }, function(){ DB.ok = false; DB.note = "The shared leaderboard is unavailable right now."; renderBoard(); });
+      renderBoard();
+    } catch(e){}
+  }
+  function boardRows(){
+    var d = dayN(), out;
+    if(DB.ok && DB.loaded){
+      out = DB.rows.map(function(r){ return {nick: r.nick, score: tab === "today" ? (r.todayDay === d ? r.todayScore : 0) : r.best, me: r.id === DB.uid}; });
+      return out.filter(function(r){ return r.score > 0; }).sort(function(a, b){ return b.score - a.score; }).slice(0, 20);
+    }
+    var L = load("unscr:ch", {best: 0, runs: []});
+    return L.runs.filter(function(r){ return tab === "today" ? r.d === d : true; }).sort(function(a, b){ return b.s - a.s; }).slice(0, 5).map(function(r){ return {nick: "You", score: r.s, me: true}; });
+  }
+  function renderBoard(){
+    var t = $("lbTabs"); t.innerHTML = "";
+    [["today", "Today"], ["all", "All-time"]].forEach(function(x){
+      var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = x[1];
+      b.setAttribute("aria-pressed", tab === x[0]);
+      b.onclick = function(){ tab = x[0]; renderBoard(); };
+      t.appendChild(b);
+    });
+    var list = $("lbList"); list.innerHTML = "";
+    var rows = boardRows();
+    if(!rows.length){ var p = document.createElement("p"); p.className = "sub"; p.style.textAlign = "center"; p.textContent = "No scores yet. Be the first!"; list.appendChild(p); }
+    rows.forEach(function(r, i){
+      var d = document.createElement("div"); d.className = "lrow" + (r.me ? " me" : "");
+      var a = document.createElement("span"); a.className = "lrank"; a.textContent = i + 1;
+      var n = document.createElement("span"); n.className = "lname"; n.textContent = r.nick;
+      var s = document.createElement("span"); s.className = "lscore"; s.textContent = r.score;
+      d.appendChild(a); d.appendChild(n); d.appendChild(s); list.appendChild(d);
+    });
+    $("lbNote").textContent = DB.note || (DB.ok ? "" : "The shared leaderboard isn’t available on this page, so this shows your own scores on this device.");
+  }
+  async function submitScore(sc){
+    if(!DB.ok || !DB.canWrite || sc < 1) return;
+    try {
+      var ref = DB.db.collection("scores").doc(DB.uid), snap = await ref.get(), cur = (snap.exists && snap.data()) || {}, d = dayN();
+      await ref.set({
+        nick: run.nick,
+        best: Math.max(+cur.best || 0, sc),
+        plays: (+cur.plays || 0) + 1,
+        todayDay: d,
+        todayScore: cur.todayDay === d ? Math.max(+cur.todayScore || 0, sc) : sc
+      });
+    } catch(e){
+      DB.canWrite = false;
+      DB.note = "Your score was saved on this device only. Saving to the shared leaderboard needs Contributor access.";
+      renderBoard();
+    }
+  }
+
+  /* ---------- the run ---------- */
+  function setSize(n){
+    var size = Math.max(32, Math.min(52, Math.floor((Math.min(window.innerWidth, 560) - 32 - (n - 1) * 8) / n)));
+    $("challenge").style.setProperty("--s", size + "px");
+  }
+  function tileFor(id){ return run.tiles.filter(function(x){ return x.id === id; })[0]; }
+  function draw(){
+    var n = run.word.length, s = $("cSlots"), p = $("cPool"), i;
+    s.innerHTML = ""; p.innerHTML = "";
+    for(i = 0; i < n; i++){
+      var b = document.createElement("button"); b.type = "button"; b.className = "slot";
+      var t = tileFor(run.ans[i]);
+      if(t){ b.textContent = t.ch; b.setAttribute("aria-label", "Remove " + t.ch); b.onclick = (function(k){ return function(){ if(run.lock) return; run.ans.splice(k, 1); draw(); }; })(i); if(run.flash){ b.className += run.flash === "bad" ? " no" : " ok hop"; b.style.animationDelay = (i * 40) + "ms"; } }
+      s.appendChild(b);
+    }
+    run.tiles.forEach(function(t){
+      var b = document.createElement("button"); b.type = "button";
+      b.className = "tile" + (run.ans.indexOf(t.id) > -1 ? " used" : ""); b.textContent = t.ch;
+      b.onclick = function(){ add(t.id); };
+      p.appendChild(b);
+    });
+  }
+  function nextWord(){
+    if(!run.words || run.idx >= run.words.length){ run.words = shuffle(POOL.slice()); run.idx = 0; }
+    var pk = run.words[run.idx++];
+    run.word = pk.w; $("cTopic").textContent = pk.t;
+    run.tiles = scr(run.word).map(function(c, i){ return {ch: c, id: i}; });
+    run.ans = []; run.lock = false;
+    setSize(run.word.length); draw();
+  }
+  function add(id){
+    if(!run.on || run.lock || run.ans.length >= run.word.length || run.ans.indexOf(id) > -1) return;
+    run.ans.push(id); draw();
+    if(run.ans.length === run.word.length){ run.lock = true; setTimeout(check, 120); }
+  }
+  function check(){
+    if(!run.on) return;
+    var g = run.ans.map(function(id){ return tileFor(id).ch; }).join("");
+    if(g === run.word){
+      run.score++; $("cScore").textContent = run.score; $("cMsg").textContent = "✓ " + run.word;
+      var r = run; run.lock = true; run.flash = "good"; draw();
+      setTimeout(function(){ if(run !== r || !run.on) return; run.flash = null; nextWord(); }, 220);
+    } else {
+      var el = $("cSlots"); el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+      var r2 = run; run.flash = "bad"; run.lock = true; draw();
+      setTimeout(function(){ if(run !== r2 || !run.on) return; run.flash = null; run.ans = []; run.lock = false; $("cMsg").textContent = ""; draw(); }, 320);
+    }
+  }
+  function tick(){
+    var left = Math.max(0, run.end - Date.now());
+    $("cTime").textContent = Math.ceil(left / 1000);
+    $("cFill").style.width = (left / DURATION * 100) + "%";
+    $("cFill").classList.toggle("low", left <= 10000);
+    if(left <= 0) finish();
+  }
+  function stopRun(){ run.on = false; if(timerId){ clearInterval(timerId); timerId = null; } }
+  function resetToStart(){ stopRun(); $("cStart").hidden = false; $("cPlay").hidden = true; $("cDone").hidden = true; }
+  function startRun(){
+    if(!POOL) POOL = buildPool();
+    if(!POOL.length) return;
+    var nick = ($("cNick").value || "").replace(/\s+/g, " ").trim().slice(0, 14) || "Player";
+    save("unscr:nick", nick);
+    run = {on: true, lock: false, score: 0, nick: nick, end: Date.now() + DURATION, words: null, idx: 0};
+    $("cStart").hidden = true; $("cDone").hidden = true; $("cPlay").hidden = false;
+    $("cScore").textContent = "0"; $("cMsg").textContent = ""; $("cTime").textContent = "60"; $("cFill").style.width = "100%";
+    nextWord();
+    timerId = setInterval(tick, 100);
+  }
+  function finish(){
+    if(!run.on) return;
+    stopRun();
+    var sc = run.score, L = load("unscr:ch", {best: 0, runs: []}), pb = sc > L.best;
+    L.best = Math.max(L.best, sc); L.runs.push({s: sc, d: dayN()});
+    L.runs.sort(function(a, b){ return b.s - a.s; }); L.runs = L.runs.slice(0, 30); save("unscr:ch", L);
+    $("cPlay").hidden = true; $("cDone").hidden = false;
+    $("cDoneTitle").textContent = sc + (sc === 1 ? " word" : " words");
+    $("cDoneBody").textContent = sc === 0 ? "No words this time. Give it another go!" : (pb && L.runs.length > 1 ? "New personal best!" : "Your best: " + L.best);
+    renderBoard();
+    submitScore(sc);
+  }
+  function closeChallenge(showDaily){
+    resetToStart(); $("challenge").hidden = true; $("chBtn").textContent = "Challenge";
+    if(showDaily) $("daily").hidden = false;
+  }
+
+  $("cNick").value = load("unscr:nick", "");
+  $("cGo").onclick = startRun;
+  $("cAgain").onclick = startRun;
+  $("cClear").onclick = function(){ if(!run.on || run.lock) return; run.ans = []; draw(); };
+  $("cSkip").onclick = function(){ if(!run.on || run.lock) return; $("cMsg").textContent = "Skipped: " + run.word; nextWord(); };
+  $("cShare").onclick = function(){
+    var sc = run.score || 0, txt = "Unscrambld Challenge ⏱️\n" + sc + (sc === 1 ? " word" : " words") + " in 60 seconds";
+    var done = function(){ $("cShare").textContent = "Copied"; setTimeout(function(){ $("cShare").textContent = "Share score"; }, 1800); };
+    try { navigator.clipboard.writeText(txt).then(done, function(){ prompt("Copy your score:", txt); }); } catch(e){ prompt("Copy your score:", txt); }
+  };
+  $("chBtn").onclick = function(){
+    if(!$("challenge").hidden){ closeChallenge(true); return; }
+    $("daily").hidden = true; $("archive").hidden = true;
+    $("archBtn").textContent = "Archive"; $("chBtn").textContent = "Daily puzzle";
+    $("challenge").hidden = false; resetToStart(); renderBoard(); initDb();
+  };
+  ["archBtn", "logo"].forEach(function(id){
+    $(id).addEventListener("click", function(){ if(!$("challenge").hidden) closeChallenge(false); });
+  });
+  document.addEventListener("keydown", function(e){
+    if($("challenge").hidden || !run.on || run.lock || e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.key === "Backspace"){ run.ans.pop(); draw(); }
+    else if(e.key === "Escape"){ run.ans = []; draw(); }
+    else if(/^[a-zA-Z]$/.test(e.key)){
+      var c = e.key.toUpperCase();
+      var t = run.tiles.filter(function(x){ return x.ch === c && run.ans.indexOf(x.id) === -1; })[0];
+      if(t) add(t.id);
+    }
+  });
+})();
+</script>
+</body>
+</html>
