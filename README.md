@@ -1,2 +1,2 @@
 # unscrambld
-daily word game
+daily word game, we lit
