@@ -419,7 +419,7 @@ dialog p{line-height:1.5;margin:0 0 12px}
     $("rTitle").textContent = won ? "It’s " + word + "." : "The word was " + word + ".";
     $("rBody").textContent = won
       ? "Solved with " + state.tries + " wrong check" + (state.tries === 1 ? "" : "s") + (state.hints ? " and a hint." : ".")
-      : (archived ? "Try another day from the archive." : "Tomorrow is a new word and a new topic.");
+      : (archived ? "Try another day from the archive." : "Tomorrow is a new word.");
     $("stats").innerHTML = [["Played", stats.played], ["Won %", stats.played ? Math.round(stats.wins / stats.played * 100) : 0], ["Streak", stats.streak], ["Best", stats.best]]
       .map(function(r){ return "<div><b>" + r[1] + "</b><span>" + r[0] + "</span></div>"; }).join("");
     $("result").classList.add("show");
@@ -455,7 +455,7 @@ dialog p{line-height:1.5;margin:0 0 12px}
   $("submit").onclick = submit;
   $("share").onclick = function(){
     var att = state.log.length;
-    var txt = "Unscrambld #" + (day + 1) + "\n" + (state.status === "won" ? "Solved in " : "Missed after ") + att + " attempt" + (att === 1 ? "" : "s") + (state.hints ? " (with a hint😉)" : "") + " " + state.log.join("") + (state.hints ? " 💡" : "") + (archived ? "\n📚 Archive game" : "\n🔥 Current streak: " + stats.streak);
+    var txt = "Unscrambld #" + (day + 1) + "\n" + (state.status === "won" ? "Solved in " : "Missed after ") + att + " attempt" + (att === 1 ? "" : "s") + (state.hints ? " (with a hint😉)" : "") + " " + state.log.join("") + (state.hints ? " 💡" : "") + (archived ? "\n📚 Archive game" : "\n🔥 Current streak: " + stats.streak) + (state.status === "won" ? "\nGet it in " + (att === 1 ? "1 try" : att + " tries or fewer") + "? If not, I guess I'm smarter than you 😏" : "");
     var done = function(){ $("share").textContent = "Copied"; setTimeout(function(){ $("share").textContent = "Share result"; }, 1800); };
     try { navigator.clipboard.writeText(txt).then(done, function(){ prompt("Copy your result:", txt); }); } catch(e){ prompt("Copy your result:", txt); }
   };
@@ -528,38 +528,26 @@ dialog p{line-height:1.5;margin:0 0 12px}
   }
 
   var POOL = null, run = {on: false, lock: false}, timerId = null, tab = "today";
-  var DB = {tried: false, ok: false, loaded: false, rows: [], uid: null, db: null, canWrite: true, note: ""};
+  var DB = {ok: false, loaded: false, rows: {today: [], all: []}, note: ""};
+  var UID = load("unscr:uid", null);
+  if(!UID){ UID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Math.random()).slice(2) + String(Date.now())); save("unscr:uid", UID); }
 
-  /* ---------- leaderboard ---------- */
-  async function initDb(){
-    if(DB.tried) return; DB.tried = true;
+  /* ---------- leaderboard (talks to /api on your Cloudflare Worker) ---------- */
+  async function loadBoard(){
     try {
-      if(!(window.claude && window.claude.use)) return;
-      var db = await window.claude.use("db"), user = await window.claude.use("user");
-      if(!db || !user) return;
-      var uid = await user.id(); if(!uid) return;
-      var cw = await user.can("data.write");
-      DB.db = db; DB.uid = uid; DB.ok = true; DB.canWrite = cw !== false;
-      if(!DB.canWrite) DB.note = "You can see the leaderboard, but saving scores to it needs Contributor access.";
-      DB.timer = setTimeout(function(){ if(!DB.loaded){ DB.note = "The shared leaderboard can’t be reached yet."; renderBoard(); } }, 10000);
-      db.collection("scores").orderBy("best", "desc").limit(200).onSnapshot(function(snap){
-        DB.loaded = true; clearTimeout(DB.timer);
-        DB.rows = snap.docs.map(function(d){
-          var x = d.data() || {};
-          return {id: d.id, nick: String(x.nick || "Player").slice(0, 14), best: +x.best || 0, todayDay: x.todayDay, todayScore: +x.todayScore || 0};
-        });
-        renderBoard();
-      }, function(){ DB.ok = false; DB.note = "The shared leaderboard is unavailable right now."; renderBoard(); });
-      renderBoard();
-    } catch(e){}
-  }
-  function boardRows(){
-    var d = dayN(), out;
-    if(DB.ok && DB.loaded){
-      out = DB.rows.map(function(r){ return {nick: r.nick, score: tab === "today" ? (r.todayDay === d ? r.todayScore : 0) : r.best, me: r.id === DB.uid}; });
-      return out.filter(function(r){ return r.score > 0; }).sort(function(a, b){ return b.score - a.score; }).slice(0, 20);
+      var r = await fetch("/api/leaderboard?id=" + encodeURIComponent(UID));
+      if(!r.ok) throw new Error("bad");
+      var j = await r.json();
+      DB.rows = {today: j.today || [], all: j.all || []}; DB.ok = true; DB.loaded = true; DB.note = "";
+    } catch(e){
+      DB.ok = false; DB.note = "The shared leaderboard can’t be reached right now, so this shows your own scores on this device.";
     }
-    var L = load("unscr:ch", {best: 0, runs: []});
+    renderBoard();
+  }
+  function initDb(){ loadBoard(); }
+  function boardRows(){
+    if(DB.ok && DB.loaded) return DB.rows[tab].map(function(r){ return {nick: r.nick, score: r.score, me: !!r.me}; });
+    var d = dayN(), L = load("unscr:ch", {best: 0, runs: []});
     return L.runs.filter(function(r){ return tab === "today" ? r.d === d : true; }).sort(function(a, b){ return b.s - a.s; }).slice(0, 5).map(function(r){ return {nick: "You", score: r.s, me: true}; });
   }
   function renderBoard(){
@@ -580,24 +568,15 @@ dialog p{line-height:1.5;margin:0 0 12px}
       var s = document.createElement("span"); s.className = "lscore"; s.textContent = r.score;
       d.appendChild(a); d.appendChild(n); d.appendChild(s); list.appendChild(d);
     });
-    $("lbNote").textContent = DB.note || (DB.ok ? "" : "The shared leaderboard isn’t available on this page, so this shows your own scores on this device.");
+    $("lbNote").textContent = DB.note;
   }
   async function submitScore(sc){
-    if(!DB.ok || !DB.canWrite || sc < 1) return;
+    if(sc < 1) return;
     try {
-      var ref = DB.db.collection("scores").doc(DB.uid), snap = await ref.get(), cur = (snap.exists && snap.data()) || {}, d = dayN();
-      await ref.set({
-        nick: run.nick,
-        best: Math.max(+cur.best || 0, sc),
-        plays: (+cur.plays || 0) + 1,
-        todayDay: d,
-        todayScore: cur.todayDay === d ? Math.max(+cur.todayScore || 0, sc) : sc
-      });
-    } catch(e){
-      DB.canWrite = false;
-      DB.note = "Your score was saved on this device only. Saving to the shared leaderboard needs Contributor access.";
-      renderBoard();
-    }
+      var r = await fetch("/api/score", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({id: UID, nick: run.nick, score: sc})});
+      if(!r.ok) throw new Error("bad");
+    } catch(e){ DB.note = "Your score was saved on this device only."; }
+    loadBoard();
   }
 
   /* ---------- the run ---------- */
