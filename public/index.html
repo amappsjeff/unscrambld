@@ -189,6 +189,7 @@ dialog p{line-height:1.5;margin:0 0 12px}
     <div id='cStart' class='cpanel'>
       <label class='clabel' for='cNick'>Name on the leaderboard</label>
       <input id='cNick' class='cinput' maxlength='14' autocomplete='off' placeholder='Your name'>
+      <p class='sub' id='cNickMsg' style='margin:0;color:var(--bad)'></p>
       <button class='btn primary' id='cGo' type='button'>Start 60-second run</button>
     </div>
 
@@ -640,7 +641,14 @@ dialog p{line-height:1.5;margin:0 0 12px}
     if(!POOL) POOL = buildPool();
     if(!POOL.length) return;
     var nick = ($("cNick").value || "").replace(/\s+/g, " ").trim().slice(0, 14) || "Player";
-    save("unscr:nick", nick);
+    $("cNickMsg").textContent = "";
+    var go = function(){ save("unscr:nick", nick); begin(nick); };
+    fetch("/api/nick?name=" + encodeURIComponent(nick)).then(function(r){ return r.json(); }).then(function(j){
+      if(j && j.ok === false) $("cNickMsg").textContent = "That name isn’t allowed. Please pick another.";
+      else go();
+    }).catch(go);
+  }
+  function begin(nick){
     run = {on: true, lock: false, score: 0, nick: nick, end: Date.now() + DURATION, words: null, idx: 0};
     $("cStart").hidden = true; $("cDone").hidden = true; $("cPlay").hidden = false;
     $("cScore").textContent = "0"; $("cMsg").textContent = ""; $("cTime").textContent = "60"; $("cFill").style.width = "100%";
