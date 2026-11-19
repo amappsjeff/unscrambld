@@ -1,7 +1,17 @@
 {
   "name": "unscrambld",
+  "main": "src/index.js",
   "compatibility_date": "2026-11-17",
   "assets": {
-    "directory": "./public"
-  }
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "unscrambld",
+      "database_id": "da63751f-aa81-41de-b882-d74e556a4770"
+    }
+  ]
 }
