@@ -18,12 +18,13 @@ export default {
     if (url.pathname === "/api/leaderboard" && req.method === "GET") {
       const me = (url.searchParams.get("id") || "").slice(0, 64);
       const day = dayNumber();
-      const [all, today] = await Promise.all([
-        env.DB.prepare("SELECT id, nick, best AS score FROM scores WHERE best > 0 ORDER BY best DESC LIMIT 20").all(),
+      const week = Math.floor(day / 7); // weeks run Monday to Sunday (puzzle #1 was a Monday)
+      const [wk, today] = await Promise.all([
+        env.DB.prepare("SELECT id, nick, week_score AS score FROM scores WHERE week_num = ?1 AND week_score > 0 ORDER BY week_score DESC LIMIT 20").bind(week).all(),
         env.DB.prepare("SELECT id, nick, today_score AS score FROM scores WHERE today_day = ?1 AND today_score > 0 ORDER BY today_score DESC LIMIT 20").bind(day).all(),
       ]);
       const clean = (r) => ({ nick: r.nick, score: r.score, me: r.id === me });
-      return json({ all: all.results.map(clean), today: today.results.map(clean) });
+      return json({ week: wk.results.map(clean), today: today.results.map(clean) });
     }
 
     if (url.pathname === "/api/score" && req.method === "POST") {
@@ -39,16 +40,18 @@ export default {
       if (row && now - row.last_at < MIN_GAP_MS) return json({ error: "too fast" }, 429);
 
       await env.DB.prepare(
-        `INSERT INTO scores (id, nick, best, plays, today_day, today_score, last_at)
-         VALUES (?1, ?2, ?3, 1, ?4, ?3, ?5)
+        `INSERT INTO scores (id, nick, best, plays, today_day, today_score, last_at, week_num, week_score)
+         VALUES (?1, ?2, ?3, 1, ?4, ?3, ?5, ?6, ?3)
          ON CONFLICT(id) DO UPDATE SET
            nick = ?2,
            best = MAX(best, ?3),
            plays = plays + 1,
            today_score = CASE WHEN today_day = ?4 THEN MAX(today_score, ?3) ELSE ?3 END,
            today_day = ?4,
+           week_score = CASE WHEN week_num = ?6 THEN MAX(week_score, ?3) ELSE ?3 END,
+           week_num = ?6,
            last_at = ?5`
-      ).bind(id, nick, score, day, now).run();
+      ).bind(id, nick, score, day, now, Math.floor(day / 7)).run();
       return json({ ok: true });
     }
 
