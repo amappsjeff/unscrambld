@@ -3,6 +3,21 @@ const LAUNCH = Date.UTC(2026, 10, 16); // puzzle #1, same as the game
 const MAX_SCORE = 60;                  // no real run beats this in 60 seconds
 const MIN_GAP_MS = 50000;              // one score per player every ~50s
 
+// ===== NICKNAME FILTER: edit these lists to add or remove words =====
+// STRONG: blocked if it appears anywhere in the name (after swapping look-alikes like $ -> s, 0 -> o).
+const STRONG = ["fuck","shit","bitch","cunt","pussy","whore","slut","bastard","nigg","faggot","retard","rapist","nazi","hitler","tranny","twat","porn","penis","vagina","dildo","blowjob","asshole","jizz","cumshot","molest","pedo","kkk"];
+// EXACT: blocked only when it is a whole word on its own (so "Dickens" or "Grape" are fine).
+const EXACT = new Set(["dick","cock","ass","tit","tits","cum","sex","anal","fag","coon","rape","spic","chink","kike","wank","hoe","cnut","dyke","homo","nig","paki","gook","jap","negro"]);
+const dedupe = (s) => s.replace(/(.)\1+/g, "$1");
+function blocked(raw) {
+  const base = String(raw).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[@4]/g, "a").replace(/3/g, "e").replace(/[1!|]/g, "i").replace(/0/g, "o").replace(/[5$]/g, "s").replace(/7/g, "t");
+  const joined = base.replace(/[^a-z]/g, "");
+  for (const w of base.split(/[^a-z]+/).filter(Boolean)) if (EXACT.has(w) || EXACT.has(dedupe(w))) return true;
+  const squeezed = dedupe(joined);
+  return STRONG.some((t) => joined.includes(t) || (t === dedupe(t) && squeezed.includes(t)));
+}
+
 function dayNumber() {
   const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" })
     .format(new Date()).split("-").map(Number);
@@ -27,12 +42,16 @@ export default {
       return json({ week: wk.results.map(clean), today: today.results.map(clean) });
     }
 
+    if (url.pathname === "/api/nick" && req.method === "GET") {
+      return json({ ok: !blocked(url.searchParams.get("name") || "") });
+    }
+
     if (url.pathname === "/api/score" && req.method === "POST") {
       let b;
       try { b = await req.json(); } catch { return json({ error: "bad request" }, 400); }
       const id = String(b.id || "");
       const score = Math.floor(Number(b.score));
-      const nick = String(b.nick || "").replace(/[^\p{L}\p{N} ._\-!?]/gu, "").replace(/\s+/g, " ").trim().slice(0, 14) || "Player";
+      const nick = blocked(b.nick || "") ? "Player" : String(b.nick || "").replace(/[^\p{L}\p{N} ._\-!?]/gu, "").replace(/\s+/g, " ").trim().slice(0, 14) || "Player";
       if (id.length < 8 || id.length > 64 || !(score >= 1 && score <= MAX_SCORE)) return json({ error: "invalid" }, 400);
 
       const now = Date.now(), day = dayNumber();
