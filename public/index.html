@@ -456,7 +456,7 @@ dialog p{line-height:1.5;margin:0 0 12px}
   $("submit").onclick = submit;
   $("share").onclick = function(){
     var att = state.log.length;
-    var txt = "Unscrambld #" + (day + 1) + "\n" + (state.status === "won" ? "Solved in " : "Missed after ") + att + " attempt" + (att === 1 ? "" : "s") + (state.hints ? " (with a hint😉)" : "") + " " + state.log.join("") + (state.hints ? " 💡" : "") + (archived ? "\n📚 Archive game" : "\n🔥 Current streak: " + stats.streak) + (state.status === "won" ? "\nGet it in " + (att === 1 ? "1 try" : att + " tries or fewer") + "? If not, I guess I'm smarter than you 😏" : "");
+    var txt = "Unscrambld #" + (day + 1) + "\n" + (state.status === "won" ? "Solved in " : "Missed after ") + att + " attempt" + (att === 1 ? "" : "s") + (state.hints ? " (with a hint😉)" : "") + " " + state.log.join("") + (state.hints ? " 💡" : "") + (archived ? "\n📚 Archive game" : "\n🔥 Current streak: " + stats.streak) + (state.status === "won" ? "\nGet it in " + (att === 1 ? "1 try" : att + " tries or fewer") + "? If not, sucks to suck" : "");
     var done = function(){ $("share").textContent = "Copied"; setTimeout(function(){ $("share").textContent = "Share result"; }, 1800); };
     try { navigator.clipboard.writeText(txt).then(done, function(){ prompt("Copy your result:", txt); }); } catch(e){ prompt("Copy your result:", txt); }
   };
